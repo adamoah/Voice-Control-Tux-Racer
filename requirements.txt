@@ -1,0 +1,5 @@
+transformers
+pynput
+SpeechRecognition
+torch
+pydub
