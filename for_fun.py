@@ -20,7 +20,7 @@ LEFT, RIGHT, UP, DOWN, STOP, QUIT = 'LEFT', 'RIGHT', 'UP', 'DOWN', 'STOP', 'QUIT
 r = sr.Recognizer()
 quit = False
 controller = Controller()
-selected = []
+selected = None
 
 # function to return keyboard input based on keyword detected
 def select_key(output, prev):
@@ -62,23 +62,23 @@ with sr.Microphone(sample_rate=16000) as source:
         text = processor.batch_decode(tokens)[0]
         print(text)
         
-        previous = selected[-2] if len(selected) > 1 else None
+        previous = selected
         # determine key to select
-        selected.append(select_key(text, previous))
+        selected = select_key(text, previous)
         
         # initiate keybaord press or release
-        if selected[-1] == Key.esc:
+        if selected == Key.esc:
             quit = True
-        elif selected[-1] == Key.space:
+        elif selected == Key.space: # release previously pressed input
+                if previous is not None:
+                    controller.release(previous)
 
-            for input in selected: # release all previously store inputs
-                if input is not None:
-                    controller.release(input)
-            selected = [] # set array to empty
-
-        elif selected[-1] is not previous: # initiate press only if new key has been selected
-            controller.press(selected[-1])
+        elif selected is not previous: # initiate press only if new key has been selected
+            controller.press(selected)
+            if previous is not None: # stop previous action
+                controller.release(previous)
         
-        print(selected)
+        print(f"Current Input: {selected}")
+        print(f"Previous Input: {previous}")
     
     print('Exiting...')
